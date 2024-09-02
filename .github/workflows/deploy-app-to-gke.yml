@@ -15,6 +15,8 @@ jobs:
       IMAGE: prince2006/shortlet-task
       GKE_CLUSTER: shortlet-cluster
       GKE_ZONE: us-central1
+      PORT: 5000
+      SERVICE_NAME: shortlet-task-api-server-service
     steps:
       - name: Chackout
         uses: actions/checkout@v3
@@ -76,7 +78,7 @@ jobs:
           EXTERNAL_IP=""
           while [ -z "$EXTERNAL_IP" ]; do
             echo "Waiting for external IP..."
-            EXTERNAL_IP=$(kubectl get svc shortlet-task-api-server-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            EXTERNAL_IP=$(kubectl get svc ${{env.SERVICE_NAME}} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             [ -z "$EXTERNAL_IP" ] && sleep 10
           done
           echo "External IP is $EXTERNAL_IP"
@@ -85,7 +87,7 @@ jobs:
       - name: Test the deployed API
         run: |
           echo "Testing API at http://$EXTERNAL_IP/"
-          RESPONSE=$(curl --fail http://$EXTERNAL_IP/)
+          RESPONSE=$(curl --fail http://$EXTERNAL_IP:${{env.PORT}}/)
           echo "Response: $RESPONSE"
         env:
           EXTERNAL_IP: ${{ steps.get-ip.outputs.external_ip }}
