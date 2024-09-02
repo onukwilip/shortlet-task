@@ -12,7 +12,7 @@ jobs:
     name: Build and deploy to GKE Cluster
     runs-on: ubuntu-latest
     env:
-      IMAGE: prince2006/shortlet-task:latest
+      IMAGE: prince2006/shortlet-task
       GKE_CLUSTER: shortlet-cluster
       GKE_ZONE: us-central1
     steps:
