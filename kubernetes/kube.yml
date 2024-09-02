@@ -1,0 +1,49 @@
+# The deployment configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shortlet-task-api-server-deployment
+  labels:
+    kind: deployment
+    app: shortlet-task-api-server
+spec:
+  selector:
+    matchLabels:
+      kind: pod
+      app: shortlet-task-api-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        kind: pod
+        app: shortlet-task-api-server
+    spec:
+      containers:
+      - name: shortlet-task-api-server
+        image: prince2006/shortlet-task:latest
+        resources:
+          requests:
+            cpu: 150m
+            memory: 10Mi
+          limits:
+            cpu: 250m
+            memory: 20Mi
+
+# The service configuration
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shortlet-task-api-server-service
+  labels:
+    kind: service
+    app: shortlet-task-api-server
+spec:
+  selector:
+    kind: pod
+    app: shortlet-task-api-server
+  type: LoadBalancer
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: "TCP"
