@@ -42,7 +42,9 @@ jobs:
           terraform_version: 1.5.3
 
       - name: Initialize Terraform
-        run: terraform init
+        run: |
+          cd terraform 
+          terraform init
 
       - name: Check if the GKE Cluster exists
         id: check_cluster
@@ -51,7 +53,9 @@ jobs:
 
       - name: Apply the Terraform configuration - Set up the GKE Cluster, If the Cluster does NOT exist
         if: steps.check_cluster.outputs.exists == ''
-        run: terraform apply --auto-approve
+        run: |
+          cd terraform 
+          terraform apply --auto-approve
 
       - name: Configure up the GKE Cluster credentials
         uses: google-github-actions/get-gke-credentials@v2
@@ -61,5 +65,6 @@ jobs:
 
       - name: Deploy app to Cluster as a deployment
         run: |
+          cd kubernetes
           kubectl apply -f kube.yml
           kubectl get pods
