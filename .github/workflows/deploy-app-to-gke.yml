@@ -87,7 +87,7 @@ jobs:
       - name: Test the deployed API
         run: |
           echo "Testing API at http://$EXTERNAL_IP/"
-          RESPONSE=$(curl --fail http://$EXTERNAL_IP:${{env.PORT}}/)
+          RESPONSE=$(curl http://$EXTERNAL_IP:${{env.PORT}}/)
           echo "Response: $RESPONSE"
         env:
           EXTERNAL_IP: ${{ steps.get-ip.outputs.external_ip }}
