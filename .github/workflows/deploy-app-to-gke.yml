@@ -71,16 +71,21 @@ jobs:
           kubectl get pods
 
       - name: Get the External IP adress of the deployed service
+        id: get-ip
         run: |
           EXTERNAL_IP=""
-          while [ -z $EXTERNAL_IP ]; do
+          while [ -z "$EXTERNAL_IP" ]; do
             echo "Waiting for external IP..."
             EXTERNAL_IP=$(kubectl get svc shortlet-task-api-server-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             [ -z "$EXTERNAL_IP" ] && sleep 10
           done
+          echo "External IP is $EXTERNAL_IP"
           echo "::set-output name=external_ip::$EXTERNAL_IP"
 
       - name: Test the deployed API
         run: |
+          echo "Testing API at http://$EXTERNAL_IP/"
           RESPONSE=$(curl --fail http://$EXTERNAL_IP/)
           echo "Response: $RESPONSE"
+        env:
+          EXTERNAL_IP: ${{ steps.get-ip.outputs.external_ip }}
