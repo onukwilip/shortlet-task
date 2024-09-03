@@ -57,10 +57,20 @@ jobs:
             echo "CLUSTER_EXISTS=0" >> $GITHUB_ENV
           fi
 
+      - name: Install OPA to enforce policies before resources are created, If the Cluster does NOT exist
+        if: env.CLUSTER_EXISTS == 0
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+          chmod +x opa
+          sudo mv opa /usr/local/bin/
+
       - name: Apply the Terraform configuration - Set up the GKE Cluster, Cloud Router, NAT gateway, create the API deployment and service, If the Cluster does NOT exist
         if: env.CLUSTER_EXISTS == 0
         run: |
           cd terraform 
+          terraform plan -out=tfplan
+          terraform show -json tfplan > tfplan.json
+          opa eval --input tfplan.json --data deny_public_ip.rego 'data.terraform.gke.deny'
           terraform apply --auto-approve
 
       - name: Configure up the GKE Cluster credentials

@@ -12,12 +12,18 @@ provider "google" {
   region  = var.region
 }
 
+# Store the cluster endpoint, certificate, and access token data for later use
+locals {
+  cluster_endpoint       = google_container_cluster.shortlet-cluster.endpoint
+  cluster_ca_certificate = base64decode(google_container_cluster.shortlet-cluster.master_auth[0].cluster_ca_certificate)
+  cluster_token          = data.google_client_config.default.access_token
+}
 
 # Kubernetes provider configuration
 provider "kubernetes" {
-  host                   = google_container_cluster.shortlet-cluster.endpoint
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(google_container_cluster.shortlet-cluster.master_auth[0].cluster_ca_certificate)
+  host                   = local.cluster_endpoint
+  token                  = local.cluster_token
+  cluster_ca_certificate = local.cluster_ca_certificate
 }
 
 
