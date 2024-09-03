@@ -51,11 +51,14 @@ jobs:
       - name: Check if the GKE Cluster exists
         id: check_cluster
         run: |
-          gcloud container clusters describe ${{env.GKE_CLUSTER}} --region ${{env.GKE_ZONE}} > /dev/null 2>&1
-          echo "CLUSTER_EXISTS=$?" >> $GITHUB_ENV
+          if gcloud container clusters describe ${{env.GKE_CLUSTER}} --region ${{env.GKE_ZONE}} > /dev/null 2>&1; then
+            echo "CLUSTER_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "CLUSTER_EXISTS=false" >> $GITHUB_ENV
+          fi
 
       - name: Apply the Terraform configuration - Set up the GKE Cluster, If the Cluster does NOT exist
-        if: env.CLUSTER_EXISTS == '1'
+        if: env.CLUSTER_EXISTS == false
         run: |
           cd terraform 
           terraform apply --auto-approve
