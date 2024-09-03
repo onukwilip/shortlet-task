@@ -4,3 +4,4 @@ gke-key.json
 terraform
 kubernetes
 .github
+vercel.json
