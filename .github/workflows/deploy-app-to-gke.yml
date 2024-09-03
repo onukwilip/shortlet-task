@@ -57,7 +57,7 @@ jobs:
             echo "CLUSTER_EXISTS=0" >> $GITHUB_ENV
           fi
 
-      - name: Apply the Terraform configuration - Set up the GKE Cluster, If the Cluster does NOT exist
+      - name: Apply the Terraform configuration - Set up the GKE Cluster, Cloud Router, NAT gateway, create the API deployment and service, If the Cluster does NOT exist
         if: env.CLUSTER_EXISTS == 0
         run: |
           cd terraform 
@@ -69,7 +69,8 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
-      - name: Deploy app to Cluster as a deployment
+      - name: Deploy app to Cluster as a deployment, If the Cluster has been previously created
+        if: env.CLUSTER_EXISTS == 1
         run: |
           cd kubernetes
           kubectl apply -f kube.yml

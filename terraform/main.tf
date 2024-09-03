@@ -4,11 +4,22 @@ variable "region" {
   default     = "us-central1"
 }
 
+data "google_client_config" "default" {}
 
+# Google provider configuration
 provider "google" {
   project = "impactful-shard-429011-e7"
   region  = var.region
 }
+
+
+# Kubernetes provider configuration
+provider "kubernetes" {
+  host                   = google_container_cluster.shortlet-cluster.endpoint
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(google_container_cluster.shortlet-cluster.master_auth[0].cluster_ca_certificate)
+}
+
 
 # Resourse responsible for creating the GKE Cluster
 resource "google_container_cluster" "shortlet-cluster" {
@@ -56,5 +67,71 @@ resource "google_compute_router_nat" "nat_gateway" {
   log_config {
     enable = true
     filter = "ERRORS_ONLY"
+  }
+}
+
+# Resourse responsible for a Kubernetes Deployment
+resource "kubernetes_deployment" "shortlet-task-api-server-deployment" {
+  depends_on = [google_container_cluster.shortlet-cluster]
+
+  metadata {
+    name      = "shortlet-task-api-server-deployment"
+    namespace = "default"
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+        kind = "pod"
+        app  = "shortlet-task-api-server"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          kind = "pod"
+          app  = "shortlet-task-api-server"
+        }
+      }
+
+      spec {
+        container {
+          image = "prince2006/shortlet-task:latest"
+          name  = "shortlet-task-api-server"
+
+          port {
+            container_port = 5000
+          }
+        }
+      }
+    }
+  }
+}
+
+# Resourse responsible for creaing a Kubernetes Service
+resource "kubernetes_service" "shortlet-task-api-server-service" {
+  depends_on = [google_container_cluster.shortlet-cluster, kubernetes_deployment.shortlet-task-api-server-deployment]
+
+  metadata {
+    name      = "shortlet-task-api-server-service"
+    namespace = "default"
+  }
+
+  spec {
+    selector = {
+      kind = "pod"
+      app  = "shortlet-task-api-server"
+    }
+
+    port {
+      port        = 5000
+      target_port = 5000
+      protocol    = "TCP"
+    }
+
+    type = "LoadBalancer"
   }
 }
