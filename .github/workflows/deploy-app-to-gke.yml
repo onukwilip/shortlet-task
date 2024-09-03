@@ -52,13 +52,13 @@ jobs:
         id: check_cluster
         run: |
           if gcloud container clusters describe ${{env.GKE_CLUSTER}} --region ${{env.GKE_ZONE}} > /dev/null 2>&1; then
-            echo "CLUSTER_EXISTS='1'" >> $GITHUB_ENV
+            echo "CLUSTER_EXISTS=1" >> $GITHUB_ENV
           else
-            echo "CLUSTER_EXISTS='0'" >> $GITHUB_ENV
+            echo "CLUSTER_EXISTS=0" >> $GITHUB_ENV
           fi
 
       - name: Apply the Terraform configuration - Set up the GKE Cluster, If the Cluster does NOT exist
-        if: env.CLUSTER_EXISTS == '0'
+        if: env.CLUSTER_EXISTS == 0
         run: |
           cd terraform 
           terraform apply --auto-approve
